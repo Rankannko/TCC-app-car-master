@@ -52,15 +52,14 @@ class BotaoAlerta extends StatefulWidget {
     return IconButton(
       icon: widget.icone,
       color: estado 
-        ? Colors.white 
-        : Colors.red, 
+        ? Colors.red 
+        : Colors.white, 
       onPressed: (){
         if (widget.topic == 'esp32Sensor/alarme'){
           print("O estado é $estado");
           _publishMessageJSON(estado);
-          print("O estado dps é $estado");
           setState(() {
-            estado = false;
+            estado = !estado;
           });
         }else{
             print('$estado agora fazendo o teste no pressed' );
@@ -169,7 +168,7 @@ class BotaoAlerta extends StatefulWidget {
   setState(() {
             estado=!estado;
           });
-  print("Dentro do publicar, set state mudou para $estado");
+  print("Dentro do publicar, set state mudou para ${estado}");
   }
 
   bool toBoolean(String str, [bool strict = false]) {

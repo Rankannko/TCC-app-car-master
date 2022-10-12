@@ -110,17 +110,17 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           SizedBox(height: 5),
-          Row(
-            children: [
-              Expanded(
-                child: SizedBox(
-                  child: const Image(
-                    image: AssetImage('images/carApp.png'),
-                  ),
-                ),
-              ),
-            ],
-          ),
+          // Row(
+          //   children: [
+          //     Expanded(
+          //       child: SizedBox(
+          //         child: const Image(
+          //           image: AssetImage('images/carApp.png'),
+          //         ),
+          //       ),
+          //     ),
+          //   ],
+          // ),
           SizedBox(height: 5),
           SizedBox(height: 20),
           Card(

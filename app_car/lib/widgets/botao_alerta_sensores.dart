@@ -38,49 +38,12 @@ class BotaoAlerta extends StatefulWidget {
   class _BotaoAlertaState extends State<BotaoAlerta> {
   bool estado = false;
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   WidgetsBinding.instance!
-  //       .addPostFrameCallback((_) => _connect());
-  //   AwesomeNotifications().isNotificationAllowed().then((isAllowed) {
-  //     if (!isAllowed) {
-  //       showDialog(
-  //         context: context,
-  //         builder: (context) => AlertDialog(
-  //           title: const Text('Allow Notifications'),
-  //           content: const Text('Our app would like to send you notifications'),
-  //           actions: [
-  //             TextButton(
-  //               onPressed: () {
-  //                 Navigator.pop(context);
-  //               },
-  //               child: const Text(
-  //                 'Don\'t Allow',
-  //                 style: TextStyle(
-  //                   color: Colors.black,
-  //                   fontSize: 18,
-  //                 ),
-  //               ),
-  //             ),
-  //             TextButton(
-  //                 onPressed: () => AwesomeNotifications()
-  //                     .requestPermissionToSendNotifications()
-  //                     .then((_) => Navigator.pop(context)),
-  //                 child: const Text(
-  //                   'Allow',
-  //                   style: TextStyle(
-  //                     color: Colors.teal,
-  //                     fontSize: 18,
-  //                     fontWeight: FontWeight.bold,
-  //                   ),
-  //                 ))
-  //           ],
-  //         ),
-  //       );
-  //     }
-  //   });
-  // }
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance!
+        .addPostFrameCallback((_) => _connect());
+  }
 
   void _subscribeToTopic(String topic) {
     if (connectionState == mqtt.MqttConnectionState.connected) {
@@ -98,8 +61,11 @@ class BotaoAlerta extends StatefulWidget {
         ? Colors.red 
         : Colors.white,
       onPressed: (){
-        print(globals.status);
         if(globals.status == true){
+          if (client?.connectionState == MqttConnectionState.disconnected){
+            print ("Entrou no if de coneção");
+            this._connect();
+          }
           print("O estado é $estado");
           _publishMessageJSON(estado);
           setState(() {
@@ -113,23 +79,35 @@ class BotaoAlerta extends StatefulWidget {
     }else{
       return IconButton(
       icon: widget.icone,
-      color: estado 
+      color: this.estado 
         ? Colors.red 
         : Colors.white,
       onPressed: (){
+         if (client?.connectionState == MqttConnectionState.disconnected){
+          print ("Entrou no if de coneção");
+          this._connect();
+        }
+        if (client?.connectionState == MqttConnectionState.disconnected){
+          print ("Entrou no if");
+        }
         if (widget.topic == 'esp32Sensor/S/presenca' || widget.topic == 'esp32Sensor/S/movimento') {
           abrirSensorInfo(context, widget.sensor);
         }else{
           abrirDialogInfo(context, widget.sensor);
         }
-      });
+    }   
+  );
     // return IconButton(
     //   icon: widget.icone,
     //   color: estado 
     //     ? Colors.red 
     //     : Colors.white,
     //   onPressed: (){
-    //     print(globals.status);
+    //     print("${client?.connectionState}");
+    //     if (client?.connectionState == MqttConnectionState.disconnected){
+    //       print ("Entrou no if");
+    //       _connect();
+    //     }
     //     if(globals.status == true){
     //     if (widget.topic == 'esp32Sensor/alarme'){
     //       print("O estado é $estado");
@@ -154,6 +132,7 @@ class BotaoAlerta extends StatefulWidget {
     //     abrirDialogInfo(context, widget.sensor);
     //   },
     // );
+    // }
     }
   }
 
@@ -169,7 +148,7 @@ class BotaoAlerta extends StatefulWidget {
     client?.onDisconnected = _onDisconnected;
 
     final mqtt.MqttConnectMessage connMess = mqtt.MqttConnectMessage()
-        .withClientIdentifier(widget.clientIdentifier)
+        .withClientIdentifier(widget.clientIdentifier + widget.topic)
         .keepAliveFor(30)
         .withWillQos(mqtt.MqttQos.atMostOnce);
     print('[MQTT client] MQTT client connecting....');
@@ -213,25 +192,90 @@ class BotaoAlerta extends StatefulWidget {
     print('[MQTT client] MQTT client disconnected');
   }
 
+  // void _onMessageConect(List<mqtt.MqttReceivedMessage> event) {
+  //   final mqtt.MqttPublishMessage recMess =
+  //   event[0].payload as mqtt.MqttPublishMessage;
+  //   String message =
+  //   mqtt.MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
+  //   if (message.startsWith('{"sensorpre')) {
+  //     print("Entrou no IF do ${widget.sensor} 1 cujo topic é ${widget.topic} com a mensagem ${message}");
+  //     var json = jsonDecode(message);
+  //     var jsonSensor = SensorJson.fromJson(json);
+  //     print("O estado atualmente é ${this.estado}");
+  //     print("O sensor esta como ${jsonSensor.sensor}");
+  //     if (jsonSensor.sensor == true){
+  //       setState(() {
+  //         this.estado = true;
+  //     });
+  //     print('Entrou no mudança de estado if, o estado depois ficou ${this.estado}, e a mensagem atualmente é ${message}');
+  //     print(jsonSensor.sensor);
+  //     }else{
+  //     setState(() {
+  //       this.estado = false;
+  //       });
+  //     print('Entrou no mudança de estado else, o estado depois ficou ${this.estado}e a mensagem atualmente é ${message}');
+  //     print(jsonSensor.sensor);
+  //     }
+  //   }
+  // }
+
   void _onMessageConect(List<mqtt.MqttReceivedMessage> event) {
     final mqtt.MqttPublishMessage recMess =
     event[0].payload as mqtt.MqttPublishMessage;
     String message =
     mqtt.MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
-    if (message == "sensor") {
+    if(event[0].topic==widget.topic){
+      print(message);
+      if (message.startsWith('{"sensorpre')) {
       var json = jsonDecode(message);
-      var jsonSensor = SensorJson.fromJson(json);
+      var jsonSensor = SensorPreJson.fromJson(json);
       if (jsonSensor.sensor == true){
-      setState(() {
-        estado = true;
+        setState(() {
+          if(this.estado == false){
+            createPresenceNotification();
+          }
+          this.estado = true;
       });
       }else{
       setState(() {
-        estado = false;
-      });
+        this.estado = false;
+        });
       }
+    }else if(message.startsWith('{"sensormov')){
+      if (message.startsWith('{"sensormov')) {
+      var json = jsonDecode(message);
+      var jsonSensor = SensorMovJson.fromJson(json);
+      if (jsonSensor.sensor == true){
+        setState(() {
+          if(this.estado == false){
+            createPresenceNotification();
+          }
+          this.estado = true;
+        });
+      }else{
+      setState(() {
+        this.estado = false;
+        });
+      }
+    }else if(message.startsWith('{"sensoral')){
+      if (message.startsWith('{"sensoral')) {
+      var json = jsonDecode(message);
+      var jsonSensor = SensorAlJson.fromJson(json);
+      if (jsonSensor.sensor == true){
+        setState(() {
+          this.estado = true;
+      });
+      }else{
+      setState(() {
+        this.estado = false;
+        });
+      }
+      }
+     }
     }
   }
+  }
+
   
   void _publishMessage(String message) async {
     final builder = MqttClientPayloadBuilder();
@@ -244,7 +288,7 @@ class BotaoAlerta extends StatefulWidget {
       builder.addString(
         json.encode(
         {
-          "sensor": estado,
+          "sensoral": estado,
         }
       )
     );
@@ -253,7 +297,7 @@ class BotaoAlerta extends StatefulWidget {
   setState(() {
             estado=!estado;
           });
-  print("Dentro do publicar, set state mudou para $estado");
+  print("Função set state");
   }
 
   bool toBoolean(String str, [bool strict = false]) {
@@ -262,5 +306,4 @@ class BotaoAlerta extends StatefulWidget {
   }
   return str != '0' && str != 'false' && str != '';
   }
-
 }

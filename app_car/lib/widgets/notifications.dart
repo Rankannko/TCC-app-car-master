@@ -4,9 +4,21 @@ Future<void> createAlarmNotification() async {
   await AwesomeNotifications().createNotification(
     content: NotificationContent(
       id: 1,
-      channelKey: 'alarm_notifications',
+      channelKey: 'alarm-channel',
       title: 'Alarme Ativado!',
       body: 'O Alarme está atualmente ligado',
+      icon: 'resource://drawable/res_notification_app_icon',
+    ),
+  );
+}
+
+Future<void> createPresenceNotification() async {
+  await AwesomeNotifications().createNotification(
+    content: NotificationContent(
+      id: 2,
+      channelKey: 'sensor-channel',
+      title: 'Movimento Detectado!',
+      body: 'Presença detectada no veículo',
       icon: 'resource://drawable/res_notification_app_icon',
     ),
   );
@@ -15,22 +27,10 @@ Future<void> createAlarmNotification() async {
 Future<void> createMovimentNotification() async {
   await AwesomeNotifications().createNotification(
     content: NotificationContent(
-      id: 2,
-      channelKey: 'alarm_notifications',
-      title: 'Alarme Ativado!',
-      body: 'O Alarme está atualmente ligado',
-      icon: 'resource://drawable/res_notification_app_icon',
-    ),
-  );
-}
-
-Future<void> createAcelerometerNotification() async {
-  await AwesomeNotifications().createNotification(
-    content: NotificationContent(
       id: 3,
-      channelKey: 'alarm_notifications',
+      channelKey: 'impact-channel',
       title: 'Alarme Ativado!',
-      body: 'Foi detectado movimento!',
+      body: 'Foi detectado um impacto!',
       icon: 'resource://drawable/res_notification_app_icon',
     ),
   );
